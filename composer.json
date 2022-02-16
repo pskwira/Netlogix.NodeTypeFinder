@@ -1,0 +1,21 @@
+{
+    "name": "netlogix/nodetypefinder",
+    "description": "Neos Backend Module to search for occurrences of NodeTypes in the page tree.",
+    "type": "neos-plugin",
+    "license": "MIT",
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "neos/neos": "^5.3 || ^7.0",
+        "guzzlehttp/psr7": "^1.8 || ^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Netlogix\\NodeTypeFinder\\": "Classes/"
+        }
+    },
+    "extra": {
+        "neos": {
+            "package-key": "Netlogix.NodeTypeFinder"
+        }
+    }
+}
