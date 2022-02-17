@@ -1,0 +1,10 @@
+Neos:
+  Neos:
+    modules:
+      administration:
+        submodules:
+          nodeTypeFinderModule:
+            label: 'NodeType Finder'
+            controller: 'Netlogix\NodeTypeFinder\Controller\NodeTypeFinderController'
+            description: 'Auflistung der Seiten URLs auf denen der gegebene NodeType vorkommt.'
+            icon: 'icon-search'

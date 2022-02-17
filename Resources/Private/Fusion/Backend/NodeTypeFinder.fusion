@@ -1,0 +1,44 @@
+include: resource://Neos.Fusion/Private/Fusion/Root.fusion
+include: resource://Neos.Fusion.Form/Private/Fusion/Root.fusion
+
+Netlogix.NodeTypeFinder.NodeTypeFinderController.index = Netlogix.NodeTypeFinder:BackendModule
+
+prototype(Netlogix.NodeTypeFinder:BackendModule) < prototype(Neos.Fusion:Component) {
+
+    renderer = afx`
+        <Neos.Fusion.Form:Form form.data.searchTerm={searchTerm} form.target.action="index">
+            <div class="neos-row">
+                <Neos.Fusion.Form:Neos.BackendModule.FieldContainer attributes.class="neos-span4" field.name="searchTerm" >
+                    <Neos.Fusion.Form:Input attributes.class="neos-span4" attributes.placeholder="Vendor.Package.NodeTypes:NodeType" />
+                </Neos.Fusion.Form:Neos.BackendModule.FieldContainer>
+                <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">
+                    Search
+                </Neos.Fusion.Form:Button>
+            </div>
+        </Neos.Fusion.Form:Form>
+        <fieldset>
+            <legend>Occurrences of NodeType</legend>
+        </fieldset>
+        <table class="neos-table" @if.hasOccurences={occurrences}>
+            <Neos.Fusion:Loop items={occurrences} itemName="occurrence" @children="itemRenderer">
+                <tr>
+                    <td>
+                        <a href={occurrence.url}>
+                            {occurrence.label}
+                        </a>
+                    </td>
+                </tr>
+            </Neos.Fusion:Loop>
+        </table>
+        <div class="neos-row" @if.noOccurences={!occurrences && searchTerm}>
+            <div class="neos-span12">
+                No occurrences of NodeType {searchTerm}.
+            </div>
+        </div>
+        <div class="neos-row" @if.noSearchTerm={!searchTerm}>
+            <div class="neos-span12">
+                Search for a NodeType to see a list of its occurrences.
+            </div>
+        </div>
+    `
+}
