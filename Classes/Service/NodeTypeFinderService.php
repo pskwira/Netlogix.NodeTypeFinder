@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Netlogix\NodeTypeFinder\Service;
 
+use Neos\ContentRepository\Domain\Service\ContentDimensionCombinator;
 use Neos\Flow\Annotations as Flow;
-use GuzzleHttp\Psr7\Uri;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Eel\FlowQuery\FlowQuery;
 use Neos\Flow\Mvc\Controller\ControllerContext;
@@ -29,47 +29,30 @@ class NodeTypeFinderService
     protected $contextFactory;
 
     /**
+     * @Flow\Inject
+     * @var ContentDimensionCombinator
+     */
+    protected $contentDimensionCombinator;
+
+    /**
      * @param string $nodeTypeName
-     * @param Uri $baseUri
+     * @param ControllerContext $controllerContext
      * @return array
-     * @throws \Neos\Eel\Exception
-     * @throws \Neos\Flow\Http\Exception
-     * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
-     * @throws \Neos\Flow\Persistence\Exception\IllegalObjectTypeException
-     * @throws \Neos\Flow\Property\Exception
-     * @throws \Neos\Flow\Security\Exception
-     * @throws \Neos\Neos\Exception
      */
     public function findNodeTypeOccurrences(string $nodeTypeName, ControllerContext $controllerContext): array
     {
         $occurrences = [];
 
-        $context = $this->contextFactory->create(['workspaceName' => 'live']);
-
-        $nodes = (new FlowQuery([$context->getCurrentSiteNode()]))
-            ->find('/')
-            ->find('[instanceof '.$nodeTypeName.']')
-            ->get();
-
-        foreach ($nodes as $node) {
+        foreach ($this->findNodeTypeOccurrencesInAllDimensions($nodeTypeName) as $node) {
             if (!$node instanceof NodeInterface) {
                 continue;
             }
 
-            $documentQuery = new FlowQuery([$node]);
-            $documentNode = $documentQuery->closest('[instanceof Neos.Neos:Document]')->get(0);
-
-            if (!$documentNode instanceof NodeInterface) {
+            $documentNode = $this->findClosestDocumentNode($node);
+            if (!$documentNode) {
                 continue;
             }
-
-            $uri = $this->linkingService->createNodeUri(
-                $controllerContext,
-                $documentNode,
-                null,
-                null,
-                true
-            );
+            $uri = $this->buildNodeUri($documentNode, $controllerContext);
 
             if (!array_key_exists($uri, $occurrences)) {
                 $occurrences[$uri] = [
@@ -81,4 +64,49 @@ class NodeTypeFinderService
 
         return array_values($occurrences);
     }
+
+    private function findNodeTypeOccurrencesInAllDimensions(string $nodeTypeName): iterable
+    {
+        $dimensionCombinations = $this->contentDimensionCombinator->getAllAllowedCombinations();
+
+        foreach ($dimensionCombinations as $dimensionCombination) {
+            yield from $this->findNodeTypeOccurrencesInDimensions(
+                $nodeTypeName,
+                $dimensionCombination
+            );
+        }
+    }
+
+    private function findNodeTypeOccurrencesInDimensions(string $nodeTypeName, array $dimensionValues): iterable
+    {
+        $context = $this->contextFactory->create([
+            'workspaceName' => 'live',
+            'dimensions' => $dimensionValues,
+        ]);
+
+        yield from (new FlowQuery([$context->getCurrentSiteNode()]))
+            ->find('/')
+            ->find('[instanceof '.$nodeTypeName.']')
+            ->get();
+    }
+
+    private function findClosestDocumentNode(NodeInterface $node): ?NodeInterface
+    {
+        $documentQuery = new FlowQuery([$node]);
+        $documentNode = $documentQuery->closest('[instanceof Neos.Neos:Document]')->get(0);
+
+        return $documentNode instanceof NodeInterface ? $documentNode : null;
+    }
+
+    private function buildNodeUri(NodeInterface $node, ControllerContext $controllerContext): ?string
+    {
+        return $this->linkingService->createNodeUri(
+            $controllerContext,
+            $node,
+            null,
+            null,
+            true
+        );
+    }
+
 }
