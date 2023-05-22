@@ -61,6 +61,9 @@ class NodeTypeFinderService
             }
             $visible = $this->isNodeVisible($documentNode);
             $uri = $this->buildNodeUri($documentNode, $controllerContext, $visible);
+            if ($uri === null) {
+                continue;
+            }
 
             if (!array_key_exists($uri, $occurrences)) {
                 $occurrences[$uri] = [
@@ -128,6 +131,10 @@ class NodeTypeFinderService
                 'workspaceName' => $this->userService->getPersonalWorkspaceName() ?? 'live',
             ]);
             $node = $this->contextFactory->create($newProperties)->getNodeByIdentifier($node->getIdentifier());
+
+            if (!$node) {
+                return null;
+            }
         }
 
         return $this->linkingService->createNodeUri(
