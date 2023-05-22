@@ -10,6 +10,7 @@ use Neos\Eel\FlowQuery\FlowQuery;
 use Neos\Flow\Mvc\Controller\ControllerContext;
 use Neos\Neos\Service\LinkingService;
 use Neos\ContentRepository\Domain\Service\ContextFactoryInterface;
+use Neos\Neos\Service\UserService;
 
 /**
  * @Flow\Scope("singleton")
@@ -17,22 +18,28 @@ use Neos\ContentRepository\Domain\Service\ContextFactoryInterface;
 class NodeTypeFinderService
 {
     /**
-     * @Flow\Inject
      * @var LinkingService
+     * @Flow\Inject
      */
     protected $linkingService;
 
     /**
-     * @Flow\Inject
      * @var ContextFactoryInterface
+     * @Flow\Inject
      */
     protected $contextFactory;
 
     /**
-     * @Flow\Inject
      * @var ContentDimensionCombinator
+     * @Flow\Inject
      */
     protected $contentDimensionCombinator;
+
+    /**
+     * @var UserService
+     * @Flow\Inject
+     */
+    protected $userService;
 
     /**
      * @param string $nodeTypeName
@@ -52,13 +59,17 @@ class NodeTypeFinderService
             if (!$documentNode) {
                 continue;
             }
-            $uri = $this->buildNodeUri($documentNode, $controllerContext);
+            $visible = $this->isNodeVisible($documentNode);
+            $uri = $this->buildNodeUri($documentNode, $controllerContext, $visible);
+            if ($uri === null) {
+                continue;
+            }
 
             if (!array_key_exists($uri, $occurrences)) {
                 $occurrences[$uri] = [
                     'url' => str_replace('./', '', $uri),
                     'label' => $documentNode->getLabel(),
-                    'visible' => $documentNode->isVisible(),
+                    'visible' => $visible,
                 ];
             }
         }
@@ -83,6 +94,7 @@ class NodeTypeFinderService
         $context = $this->contextFactory->create([
             'workspaceName' => 'live',
             'dimensions' => $dimensionValues,
+            'invisibleContentShown' => true,
         ]);
 
         yield from (new FlowQuery([$context->getCurrentSiteNode()]))
@@ -99,8 +111,32 @@ class NodeTypeFinderService
         return $documentNode instanceof NodeInterface ? $documentNode : null;
     }
 
-    private function buildNodeUri(NodeInterface $node, ControllerContext $controllerContext): ?string
+    private function isNodeVisible(NodeInterface $node): bool
     {
+        $parent = $node;
+        while ($parent !== null) {
+            if (!$parent->isVisible()) {
+                return false;
+            }
+            $parent = $parent->getParent();
+        }
+
+        return true;
+    }
+
+    private function buildNodeUri(NodeInterface $node, ControllerContext $controllerContext, bool $visible): ?string
+    {
+        if (!$visible) {
+            $newProperties = array_merge($node->getContext()->getProperties(), [
+                'workspaceName' => $this->userService->getPersonalWorkspaceName() ?? 'live',
+            ]);
+            $node = $this->contextFactory->create($newProperties)->getNodeByIdentifier($node->getIdentifier());
+
+            if (!$node) {
+                return null;
+            }
+        }
+
         return $this->linkingService->createNodeUri(
             $controllerContext,
             $node,
