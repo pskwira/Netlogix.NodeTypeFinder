@@ -8,7 +8,13 @@ prototype(Netlogix.NodeTypeFinder:BackendModule) < prototype(Neos.Fusion:Compone
         <Neos.Fusion.Form:Form form.data.searchTerm={searchTerm} form.target.action="index">
             <div class="neos-row">
                 <Neos.Fusion.Form:Neos.BackendModule.FieldContainer attributes.class="neos-span4" field.name="searchTerm" >
-                    <Neos.Fusion.Form:Input attributes.class="neos-span4" attributes.placeholder="Vendor.Package.NodeTypes:NodeType" />
+                    <Neos.Fusion.Form:Select attributes.class="neos-span4">
+                        <Neos.Fusion:Loop items={nodeTypes} itemName="nodeType" @children="itemRenderer">
+                            <Neos.Fusion.Form:Select.Option option.value={nodeType.name}>
+                                {nodeType.label ? nodeType.label + ' (' + nodeType.name + ')' : nodeType.name}
+                            </Neos.Fusion.Form:Select.Option>
+                        </Neos.Fusion:Loop>
+                    </Neos.Fusion.Form:Select>
                 </Neos.Fusion.Form:Neos.BackendModule.FieldContainer>
                 <Neos.Fusion.Form:Button attributes.class="neos-button neos-button-primary">
                     Search
@@ -37,24 +43,24 @@ prototype(Netlogix.NodeTypeFinder:BackendModule) < prototype(Neos.Fusion:Compone
 }
 
 prototype(Netlogix.NodeTypeFinder:BackendModule.Occurrence) < prototype(Neos.Fusion:Component) {
-	occurrence = ${occurrence}
-	hiddenProps = Neos.Fusion:DataStructure {
-		style = Neos.Fusion:Join {
-			0 = 'color: #777'
-			@glue = ';'
-		}
+    occurrence = ${occurrence}
+    hiddenProps = Neos.Fusion:DataStructure {
+        style = Neos.Fusion:Join {
+            0 = 'color: #777'
+            @glue = ';'
+        }
 
-		@if.hidden = ${occurrence.visible == false}
-	}
+        @if.hidden = ${occurrence.visible == false}
+    }
 
-	renderer = afx`
-		<tr>
-			<td>
-				<a href={props.occurrence.url} {...props.hiddenProps}>
-					{props.occurrence.label}
-				</a>
-			</td>
-			<td {...props.hiddenProps}>{props.occurrence.url}</td>
-		</tr>
-	`
+    renderer = afx`
+        <tr>
+            <td>
+                <a href={props.occurrence.url} {...props.hiddenProps}>
+                    {props.occurrence.label}
+                </a>
+            </td>
+            <td {...props.hiddenProps}>{props.occurrence.url}</td>
+        </tr>
+    `
 }
