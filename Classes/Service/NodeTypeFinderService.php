@@ -57,7 +57,8 @@ class NodeTypeFinderService
             if (!array_key_exists($uri, $occurrences)) {
                 $occurrences[$uri] = [
                     'url' => str_replace('./', '', $uri),
-                    'label' => $documentNode->getLabel()
+                    'label' => $documentNode->getLabel(),
+                    'visible' => $documentNode->isVisible(),
                 ];
             }
         }
