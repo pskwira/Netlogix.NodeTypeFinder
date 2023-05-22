@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Netlogix\NodeTypeFinder\Controller;
 
+use Generator;
 use Neos\Flow\Annotations as Flow;
 use Neos\Fusion\View\FusionView;
 use Neos\Flow\Mvc\View\ViewInterface;
@@ -48,7 +49,7 @@ class NodeTypeFinderController extends AbstractModuleController
         }
     }
 
-    private function search(string $searchTerm): \Generator
+    private function search(string $searchTerm): Generator
     {
         $occurrences = $this->nodeTypeFinderService->findNodeTypeOccurrences(
             $searchTerm,
@@ -56,7 +57,7 @@ class NodeTypeFinderController extends AbstractModuleController
         );
 
         foreach ($occurrences as $occurrence) {
-            yield ['url' => $occurrence['url'], 'label' => $occurrence['label']];
+            yield $occurrence;
         }
     }
 }

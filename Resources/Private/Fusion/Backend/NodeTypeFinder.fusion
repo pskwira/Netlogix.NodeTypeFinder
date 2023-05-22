@@ -4,7 +4,6 @@ include: resource://Neos.Fusion.Form/Private/Fusion/Root.fusion
 Netlogix.NodeTypeFinder.NodeTypeFinderController.index = Netlogix.NodeTypeFinder:BackendModule
 
 prototype(Netlogix.NodeTypeFinder:BackendModule) < prototype(Neos.Fusion:Component) {
-
     renderer = afx`
         <Neos.Fusion.Form:Form form.data.searchTerm={searchTerm} form.target.action="index">
             <div class="neos-row">
@@ -21,13 +20,7 @@ prototype(Netlogix.NodeTypeFinder:BackendModule) < prototype(Neos.Fusion:Compone
         </fieldset>
         <table class="neos-table" @if.hasOccurences={occurrences}>
             <Neos.Fusion:Loop items={occurrences} itemName="occurrence" @children="itemRenderer">
-                <tr>
-                    <td>
-                        <a href={occurrence.url}>
-                            {occurrence.label}
-                        </a>
-                    </td>
-                </tr>
+                <Netlogix.NodeTypeFinder:BackendModule.Occurrence/>
             </Neos.Fusion:Loop>
         </table>
         <div class="neos-row" @if.noOccurences={!occurrences && searchTerm}>
@@ -41,4 +34,27 @@ prototype(Netlogix.NodeTypeFinder:BackendModule) < prototype(Neos.Fusion:Compone
             </div>
         </div>
     `
+}
+
+prototype(Netlogix.NodeTypeFinder:BackendModule.Occurrence) < prototype(Neos.Fusion:Component) {
+	occurrence = ${occurrence}
+	hiddenProps = Neos.Fusion:DataStructure {
+		style = Neos.Fusion:Join {
+			0 = 'color: #777'
+			@glue = ';'
+		}
+
+		@if.hidden = ${occurrence.visible == false}
+	}
+
+	renderer = afx`
+		<tr>
+			<td>
+				<a href={props.occurrence.url} {...props.hiddenProps}>
+					{props.occurrence.label}
+				</a>
+			</td>
+			<td {...props.hiddenProps}>{props.occurrence.url}</td>
+		</tr>
+	`
 }
