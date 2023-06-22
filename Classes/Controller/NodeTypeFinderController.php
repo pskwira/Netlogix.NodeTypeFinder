@@ -43,6 +43,7 @@ class NodeTypeFinderController extends AbstractModuleController
     public function indexAction(?string $searchTerm = null): void
     {
         $this->view->assign('searchTerm', $searchTerm);
+        $this->view->assign('nodeTypes', $this->nodeTypeFinderService->getRelevantNodeTypes());
 
         if (!empty($searchTerm)) {
             $this->view->assign('occurrences', iterator_to_array($this->search($searchTerm)));

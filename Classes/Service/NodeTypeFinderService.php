@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace Netlogix\NodeTypeFinder\Service;
 
+use Neos\ContentRepository\Domain\Model\NodeType;
 use Neos\ContentRepository\Domain\Service\ContentDimensionCombinator;
+use Neos\ContentRepository\Domain\Service\NodeTypeManager;
 use Neos\Flow\Annotations as Flow;
 use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Eel\FlowQuery\FlowQuery;
@@ -42,6 +44,12 @@ class NodeTypeFinderService
     protected $userService;
 
     /**
+     * @var NodeTypeManager
+     * @Flow\Inject
+     */
+    protected $nodeTypeManager;
+
+    /**
      * @param string $nodeTypeName
      * @param ControllerContext $controllerContext
      * @return array
@@ -75,6 +83,14 @@ class NodeTypeFinderService
         }
 
         return array_values($occurrences);
+    }
+
+    public function getRelevantNodeTypes(): array
+    {
+        $nodeTypes = $this->nodeTypeManager->getNodeTypes(false);
+        $nodeTypes = array_filter($nodeTypes, fn (NodeType $nodeType) => $nodeType->isOfType('Neos.Neos:Document') || $nodeType->isOfType('Neos.Neos:Content'));
+
+        return array_map(fn (NodeType $nodeType) => ['name' => $nodeType->getName(), 'label' => $nodeType->getLabel()], $nodeTypes);
     }
 
     private function findNodeTypeOccurrencesInAllDimensions(string $nodeTypeName): iterable
