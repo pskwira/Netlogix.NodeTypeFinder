@@ -113,8 +113,7 @@ class NodeTypeFinderService
             'invisibleContentShown' => true,
         ]);
 
-        yield from (new FlowQuery([$context->getCurrentSiteNode()]))
-            ->find('/')
+        yield from (new FlowQuery([$context->getRootNode()]))
             ->find('[instanceof '.$nodeTypeName.']')
             ->get();
     }
