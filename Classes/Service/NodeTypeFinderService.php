@@ -118,7 +118,7 @@ class NodeTypeFinderService
             ->get();
     }
 
-    private function findClosestDocumentNode(NodeInterface $node): ?NodeInterface
+    public function findClosestDocumentNode(NodeInterface $node): ?NodeInterface
     {
         $documentQuery = new FlowQuery([$node]);
         $documentNode = $documentQuery->closest('[instanceof Neos.Neos:Document]')->get(0);
@@ -126,7 +126,7 @@ class NodeTypeFinderService
         return $documentNode instanceof NodeInterface ? $documentNode : null;
     }
 
-    private function isNodeVisible(NodeInterface $node): bool
+    public function isNodeVisible(NodeInterface $node): bool
     {
         $parent = $node;
         while ($parent !== null) {
@@ -139,7 +139,7 @@ class NodeTypeFinderService
         return true;
     }
 
-    private function buildNodeUri(NodeInterface $node, ControllerContext $controllerContext, bool $visible): ?string
+    public function buildNodeUri(NodeInterface $node, ControllerContext $controllerContext, bool $visible): ?string
     {
         if (!$visible) {
             $newProperties = array_merge($node->getContext()->getProperties(), [
